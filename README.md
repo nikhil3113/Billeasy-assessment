@@ -4,7 +4,7 @@ A RESTful API for managing books and their reviews, allowing users to browse boo
 
 ## Tech Stack
 
-- **Backend**: Node.js with Express
+- **Backend**: Node.js with (Typescript)
 - **Database**: MongoDB
 - **ORM**: Prisma
 - **Authentication**: JWT-based authentication
