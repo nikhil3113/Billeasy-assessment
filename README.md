@@ -22,7 +22,7 @@ A RESTful API for managing books and their reviews, allowing users to browse boo
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/book-review-billeasy.git
+git clone https://github.com/nikhil3113/book-review-billeasy.git
 cd book-review-billeasy
 ```
 
