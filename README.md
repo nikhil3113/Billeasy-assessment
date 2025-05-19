@@ -116,6 +116,8 @@ curl http://localhost:3000/api/books/bookId
 
 Submit a review for a book (authenticated)
 
+- A user can only submit one review per book.
+
 ```bash
 
 curl -X POST http://localhost:3000/api/books/bookId/review \
@@ -145,4 +147,86 @@ Delete a review (authenticated)
 ```bash
 curl -X DELETE http://localhost:3000/api/reviews/reviewId \
   -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Design Decisions & Assumptions
+
+Authencation:
+
+- JWT-based authentication is used for securing endpoints.
+- Passwords are hashed using bcrypt for security.
+
+Data Models:
+
+- Users can register with email, password, and name
+- Books contain basic information (title, author, genre, description, publication date)
+- Reviews have a rating, comment, and are connected to both a book and a user
+
+Business Rules:
+
+- A user can submit only one review per book
+- Users can only update or delete their own reviews
+- Books can be filtered by author and genre
+- Paginated results are available for better performance
+
+API Structure:
+
+- RESTful design with appropriate HTTP methods
+- Authentication middleware for protected routes
+
+### Block Diagram
+
+```mermaid
+flowchart TD
+    Client["Client"]:::client
+    subgraph "API Server"
+        Router["Express Router"]:::http
+        Auth["Auth Middleware"]:::http
+        subgraph "Controllers"
+            UserCtrl["User Controller"]:::business
+            BookCtrl["Book Controller"]:::business
+            ReviewCtrl["Review Controller"]:::business
+        end
+        subgraph "Data Access Layer"
+            PrismaSetup["Prisma Setup"]:::data
+            PrismaGen["Prisma Client"]:::data
+        end
+    end
+    MongoDB["MongoDB"]:::db
+
+    %% Request Flow
+    Client -->|"HTTP Request"| Router
+    Router -->|"JWT Check"| Auth
+    Auth -->|"Invoke Handler"| UserCtrl
+    Auth -->|"Invoke Handler"| BookCtrl
+    Auth -->|"Invoke Handler"| ReviewCtrl
+    UserCtrl -->|"Query/Mutate"| PrismaGen
+    BookCtrl -->|"Query/Mutate"| PrismaGen
+    ReviewCtrl -->|"Query/Mutate"| PrismaGen
+    PrismaGen -->|"Reads/Writes"| MongoDB
+
+    %% Response Flow
+    MongoDB -->|"Data"| PrismaGen
+    PrismaGen -->|"Result"| UserCtrl
+    PrismaGen -->|"Result"| BookCtrl
+    PrismaGen -->|"Result"| ReviewCtrl
+    UserCtrl -->|"HTTP Response"| Client
+    BookCtrl -->|"HTTP Response"| Client
+    ReviewCtrl -->|"HTTP Response"| Client
+
+    %% Click Events
+    click Router "https://github.com/nikhil3113/billeasy-assessment/tree/main/src/routes/"
+    click Auth "https://github.com/nikhil3113/billeasy-assessment/blob/main/src/middleware/auth.ts"
+    click UserCtrl "https://github.com/nikhil3113/billeasy-assessment/blob/main/src/controller/user.ts"
+    click BookCtrl "https://github.com/nikhil3113/billeasy-assessment/blob/main/src/controller/books.ts"
+    click ReviewCtrl "https://github.com/nikhil3113/billeasy-assessment/blob/main/src/controller/reviews.ts"
+    click PrismaSetup "https://github.com/nikhil3113/billeasy-assessment/blob/main/src/prisma.ts"
+    click PrismaGen "https://github.com/nikhil3113/billeasy-assessment/tree/main/src/generated/prisma/"
+
+    %% Styles
+    classDef client fill:#ADD8E6,stroke:#333,stroke-width:1px
+    classDef http fill:#FFFF99,stroke:#333,stroke-width:1px
+    classDef business fill:#FFA500,stroke:#333,stroke-width:1px
+    classDef data fill:#90EE90,stroke:#333,stroke-width:1px
+    classDef db fill:#228B22,stroke:#333,stroke-width:1px, color:#fff
 ```
